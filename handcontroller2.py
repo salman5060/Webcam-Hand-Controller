@@ -42,7 +42,6 @@ gesture_buffer = deque(maxlen=4)
 
 def fingers_up(landmarks):
     fingers = []
-    # Check 4 fingers [Index, Middle, Ring, Pinky] with strict margin to stop flickering
     for tip_id in [8, 12, 16, 20]:
         if landmarks[tip_id].y < landmarks[tip_id - 2].y - 0.02:
             fingers.append(1)
@@ -81,7 +80,6 @@ while cap.isOpened():
         four_fingers = fingers_up(lm)
         gesture_buffer.append(four_fingers)
 
-        # Confirm gesture only if it stays stable for 4 frames (Stops screen shaking)
         stable_gesture = (
             four_fingers
             if gesture_buffer.count(four_fingers) == len(gesture_buffer)
@@ -90,7 +88,6 @@ while cap.isOpened():
 
         palm_x, palm_y = int(lm[9].x * w), int(lm[9].y * h)
 
-        # 1. FIVE FINGERS -> Move Mouse & Fast Swipe Left/Right
         if stable_gesture == [1, 1, 1, 1]:
             one_finger_start_time = None
             clicked_this_hold = False
@@ -128,7 +125,6 @@ while cap.isOpened():
                     pyautogui.moveTo(curr_x, curr_y, _pause=False)
                     prev_x, prev_y = curr_x, curr_y
 
-        # 2. ONE FINGER (Index Only) -> Hold to Click / Open App
         elif stable_gesture == [1, 0, 0, 0]:
             palm_history.clear()
             ix, iy = int(lm[8].x * w), int(lm[8].y * h)
@@ -161,7 +157,6 @@ while cap.isOpened():
             else:
                 gesture_text = "Clicked!"
 
-        # 3. TWO FINGERS (Index + Middle) -> Smooth Scroll Down (Home Feed + Reels)
         elif stable_gesture == [1, 1, 0, 0]:
             palm_history.clear()
             one_finger_start_time = None
@@ -172,7 +167,6 @@ while cap.isOpened():
                 pyautogui.scroll(-120)
                 last_scroll_time = current_time
 
-        # 4. THREE FINGERS (Index + Middle + Ring) -> Smooth Scroll Up (Home Feed + Reels)
         elif stable_gesture == [1, 1, 1, 0]:
             palm_history.clear()
             one_finger_start_time = None
